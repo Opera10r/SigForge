@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SigForge — Email Signature Generator</title>
+<meta name="description" content="Design a professional email signature with live preview. Copy the HTML into Gmail, Outlook, or Apple Mail. No account needed.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class',theme:{extend:{colors:{indigo:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81',950:'#1e1b4e'}}}}}</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .fade-in { animation: fadeIn 0.2s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .preview-frame { background: white; color: #1e293b; font-family: Arial, sans-serif; }
+  input[type="color"] { -webkit-appearance: none; border: none; cursor: pointer; }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: 1px solid #3f3f46; border-radius: 4px; }
+</style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="border-b border-zinc-800 px-6 py-4">
+  <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <h1 class="text-xl font-bold tracking-tight">SigForge</h1>
+      <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/20">Email Signature Generator</span>
+    </div>
+    <div class="text-xs text-zinc-500">No account needed &middot; 100% client-side</div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 max-w-7xl mx-auto w-full px-6 py-6 flex flex-col lg:flex-row gap-6">
+
+  <!-- Left: Form -->
+  <div class="lg:w-2/5 space-y-4 overflow-y-auto max-h-[85vh] pr-2">
+
+    <!-- Template -->
+    <div>
+      <label class="block text-xs font-medium text-zinc-400 mb-1">Template</label>
+      <div class="flex gap-2">
+        <button onclick="setTemplate('minimal')" id="tplMinimal" class="tpl-btn flex-1 text-xs font-medium py-2 px-3 rounded-lg border transition-colors bg-indigo-600/20 border-indigo-500/30 text-indigo-400">Minimal</button>
+        <button onclick="setTemplate('professional')" id="tplProfessional" class="tpl-btn flex-1 text-xs font-medium py-2 px-3 rounded-lg border transition-colors bg-zinc-800 border-zinc-700 text-zinc-400">With Logo</button>
+        <button onclick="setTemplate('banner')" id="tplBanner" class="tpl-btn flex-1 text-xs font-medium py-2 px-3 rounded-lg border transition-colors bg-zinc-800 border-zinc-700 text-zinc-400">With Banner</button>
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <fieldset class="space-y-3">
+      <legend class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Identity</legend>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Full Name</label>
+          <input id="fName" type="text" value="Sarah Chen" class="sig-input" oninput="render()">
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Job Title</label>
+          <input id="fTitle" type="text" value="VP of Marketing" class="sig-input" oninput="render()">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Email</label>
+          <input id="fEmail" type="email" value="sarah@acme.com" class="sig-input" oninput="render()">
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Phone</label>
+          <input id="fPhone" type="text" value="(503) 555-0123" class="sig-input" oninput="render()">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Company</label>
+          <input id="fCompany" type="text" value="Acme Corp" class="sig-input" oninput="render()">
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Website</label>
+          <input id="fWebsite" type="text" value="acme.com" class="sig-input" oninput="render()">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-zinc-500 mb-1">Pronouns <span class="text-zinc-700">(optional)</span></label>
+        <input id="fPronouns" type="text" value="" placeholder="she/her" class="sig-input" oninput="render()">
+      </div>
+    </fieldset>
+
+    <!-- Branding -->
+    <fieldset class="space-y-3">
+      <legend class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Branding</legend>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Brand Color</label>
+          <div class="flex items-center gap-2">
+            <input id="fColor" type="color" value="#4F46E5" class="w-8 h-8 rounded" oninput="document.getElementById('fColorHex').value=this.value; render();">
+            <input id="fColorHex" type="text" value="#4F46E5" class="sig-input flex-1" oninput="document.getElementById('fColor').value=this.value; render();">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Logo Width (px)</label>
+          <input id="fLogoWidth" type="number" value="80" min="30" max="200" class="sig-input" oninput="render()">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-zinc-500 mb-1">Logo URL <span class="text-zinc-700">(for Professional/Banner templates)</span></label>
+        <input id="fLogoUrl" type="text" value="" placeholder="https://example.com/logo.png" class="sig-input" oninput="render()">
+      </div>
+    </fieldset>
+
+    <!-- Social -->
+    <fieldset class="space-y-3">
+      <legend class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Social Links <span class="text-zinc-700 normal-case">(optional)</span></legend>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">LinkedIn URL</label>
+          <input id="fLinkedin" type="text" value="" placeholder="https://linkedin.com/in/..." class="sig-input" oninput="render()">
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Twitter/X URL</label>
+          <input id="fTwitter" type="text" value="" placeholder="https://x.com/..." class="sig-input" oninput="render()">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Banner (for banner template) -->
+    <fieldset id="bannerFields" class="space-y-3 hidden">
+      <legend class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">CTA Banner</legend>
+      <div>
+        <label class="block text-xs text-zinc-500 mb-1">Banner Image URL</label>
+        <input id="fBannerUrl" type="text" value="" placeholder="https://example.com/banner.png" class="sig-input" oninput="render()">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Banner Link</label>
+          <input id="fBannerLink" type="text" value="" placeholder="https://calendly.com/..." class="sig-input" oninput="render()">
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Alt Text</label>
+          <input id="fBannerAlt" type="text" value="Book a meeting" class="sig-input" oninput="render()">
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <!-- Right: Preview + Output -->
+  <div class="lg:w-3/5 flex flex-col gap-4">
+
+    <!-- Live Preview -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-xs font-medium text-zinc-400">Live Preview</label>
+        <span class="text-xs text-zinc-600">Email-safe HTML (table-based, inline CSS)</span>
+      </div>
+      <div class="bg-white rounded-lg p-6 min-h-[120px]">
+        <div id="previewArea"></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3">
+      <button onclick="copySignature()" id="copyBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors text-sm">Copy HTML to Clipboard</button>
+      <button onclick="copyRichText()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-2.5 px-4 rounded-lg transition-colors text-sm">Copy as Rich Text</button>
+    </div>
+
+    <!-- HTML Source -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-xs font-medium text-zinc-400">HTML Source</label>
+        <button onclick="copySignature()" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Copy</button>
+      </div>
+      <textarea id="htmlSource" class="w-full h-48 bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-xs text-zinc-400 font-mono resize-none focus:outline-none" readonly></textarea>
+    </div>
+
+    <!-- Instructions -->
+    <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-4 text-xs text-zinc-500 space-y-2">
+      <p class="font-medium text-zinc-400">How to use your signature</p>
+      <ul class="space-y-1 list-disc list-inside">
+        <li><strong>Gmail:</strong> Settings &rarr; See all settings &rarr; General &rarr; Signature &rarr; Paste</li>
+        <li><strong>Outlook:</strong> Settings &rarr; Mail &rarr; Compose and reply &rarr; Email signature &rarr; Paste</li>
+        <li><strong>Apple Mail:</strong> Preferences &rarr; Signatures &rarr; Paste (uncheck "Always match font")</li>
+      </ul>
+      <p class="text-zinc-600 mt-2">Use "Copy as Rich Text" for Gmail/Outlook, or "Copy HTML" for clients that accept raw HTML.</p>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="border-t border-zinc-800 px-6 py-4">
+  <div class="max-w-7xl mx-auto flex items-center justify-between text-xs text-zinc-600">
+    <span>Built by Raven's Gate Publishers LLC</span>
+    <div class="flex items-center gap-4">
+      <a href="https://opera10r.github.io/CleanCopy/" target="_blank" class="hover:text-zinc-400 transition-colors">CleanCopy</a>
+      <a href="https://opera10r.github.io/ClipMarkdown/" target="_blank" class="hover:text-zinc-400 transition-colors">ClipMarkdown</a>
+      <a href="https://opera10r.github.io/DeStacker/" target="_blank" class="hover:text-zinc-400 transition-colors">DeStacker</a>
+      <a href="https://opera10r.github.io/MetaPack/" target="_blank" class="hover:text-zinc-400 transition-colors">MetaPack</a>
+      <a href="https://opera10r.github.io/PauseSpace/" target="_blank" class="hover:text-zinc-400 transition-colors">PauseSpace</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .sig-input {
+    width: 100%;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: #e4e4e7;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .sig-input:focus {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  }
+  .sig-input::placeholder { color: #52525b; }
+</style>
+
+<script>
+let currentTemplate = 'minimal';
+
+function setTemplate(tpl) {
+  currentTemplate = tpl;
+  document.querySelectorAll('.tpl-btn').forEach(b => {
+    const id = b.id.replace('tpl', '').toLowerCase();
+    if (id === tpl) {
+      b.className = 'tpl-btn flex-1 text-xs font-medium py-2 px-3 rounded-lg border transition-colors bg-indigo-600/20 border-indigo-500/30 text-indigo-400';
+    } else {
+      b.className = 'tpl-btn flex-1 text-xs font-medium py-2 px-3 rounded-lg border transition-colors bg-zinc-800 border-zinc-700 text-zinc-400';
+    }
+  });
+  document.getElementById('bannerFields').classList.toggle('hidden', tpl !== 'banner');
+  render();
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function getFields() {
+  return {
+    name: document.getElementById('fName').value,
+    title: document.getElementById('fTitle').value,
+    email: document.getElementById('fEmail').value,
+    phone: document.getElementById('fPhone').value,
+    company: document.getElementById('fCompany').value,
+    website: document.getElementById('fWebsite').value,
+    pronouns: document.getElementById('fPronouns').value,
+    color: document.getElementById('fColor').value,
+    logoUrl: document.getElementById('fLogoUrl').value,
+    logoWidth: document.getElementById('fLogoWidth').value || '80',
+    linkedin: document.getElementById('fLinkedin').value,
+    twitter: document.getElementById('fTwitter').value,
+    bannerUrl: document.getElementById('fBannerUrl').value,
+    bannerLink: document.getElementById('fBannerLink').value,
+    bannerAlt: document.getElementById('fBannerAlt').value || 'Banner',
+  };
+}
+
+function buildSocialRow(f) {
+  const links = [];
+  if (f.linkedin) links.push(`<a href="${esc(f.linkedin)}" style="color: ${esc(f.color)}; text-decoration: none; font-size: 12px;">LinkedIn</a>`);
+  if (f.twitter) links.push(`<a href="${esc(f.twitter)}" style="color: ${esc(f.color)}; text-decoration: none; font-size: 12px;">Twitter</a>`);
+  if (links.length === 0) return '';
+  return `<tr><td style="padding-top: 6px; font-size: 12px;">${links.join(' &middot; ')}</td></tr>`;
+}
+
+function buildMinimal(f) {
+  const pronouns = f.pronouns ? ` <span style="color: #94a3b8; font-weight: normal;">(${esc(f.pronouns)})</span>` : '';
+  const social = buildSocialRow(f);
+  return `<table border="0" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; line-height: 1.5; color: #1e293b;">
+  <tr>
+    <td style="padding-bottom: 4px;">
+      <div style="font-size: 15px; font-weight: bold; color: #0f172a;">${esc(f.name)}${pronouns}</div>
+      <div style="font-size: 13px; color: ${esc(f.color)}; font-weight: 600;">${esc(f.title)}</div>
+      ${f.company ? `<div style="font-size: 12px; color: #64748b;">${esc(f.company)}</div>` : ''}
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-top: 8px; border-top: 1px solid #e2e8f0;">
+      <div style="font-size: 12px; color: #64748b;">
+        <a href="mailto:${esc(f.email)}" style="color: #64748b; text-decoration: none;">${esc(f.email)}</a>${f.phone ? ` &middot; ${esc(f.phone)}` : ''}${f.website ? ` &middot; <a href="https://${esc(f.website)}" style="color: ${esc(f.color)}; text-decoration: none;">${esc(f.website)}</a>` : ''}
+      </div>
+    </td>
+  </tr>
+  ${social}
+</table>`;
+}
+
+function buildProfessional(f) {
+  const pronouns = f.pronouns ? ` <span style="color: #94a3b8; font-weight: normal;">(${esc(f.pronouns)})</span>` : '';
+  const social = buildSocialRow(f);
+  const logoCell = f.logoUrl
+    ? `<td style="padding-right: 16px; border-right: 2px solid ${esc(f.color)}; vertical-align: top;"><img src="${esc(f.logoUrl)}" width="${esc(f.logoWidth)}" alt="${esc(f.company)}" style="display: block; border-radius: 4px;" /></td>`
+    : `<td style="padding-right: 16px; border-right: 2px solid ${esc(f.color)}; vertical-align: top;"><div style="width: ${esc(f.logoWidth)}px; height: ${esc(f.logoWidth)}px; background: ${esc(f.color)}; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><span style="color: white; font-size: 24px; font-weight: bold;">${esc((f.company||'A')[0])}</span></div></td>`;
+
+  return `<table border="0" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; line-height: 1.5; color: #1e293b;">
+  <tr>
+    ${logoCell}
+    <td style="padding-left: 16px; vertical-align: top;">
+      <div style="font-size: 15px; font-weight: bold; color: #0f172a;">${esc(f.name)}${pronouns}</div>
+      <div style="font-size: 13px; color: ${esc(f.color)}; font-weight: 600; margin-bottom: 4px;">${esc(f.title)}</div>
+      ${f.company ? `<div style="font-size: 12px; color: #64748b; margin-bottom: 2px;">${esc(f.company)}</div>` : ''}
+      <div style="font-size: 12px; color: #64748b;">
+        <a href="mailto:${esc(f.email)}" style="color: #64748b; text-decoration: none;">${esc(f.email)}</a><br/>
+        ${f.phone ? `${esc(f.phone)}<br/>` : ''}
+        ${f.website ? `<a href="https://${esc(f.website)}" style="color: ${esc(f.color)}; text-decoration: none;">${esc(f.website)}</a>` : ''}
+      </div>
+    </td>
+  </tr>
+  ${social ? `<tr><td colspan="2" style="padding-left: 0;">${social.replace(/<\/?tr>/g, '')}</td></tr>` : ''}
+</table>`;
+}
+
+function buildBanner(f) {
+  let html = buildProfessional(f);
+  if (f.bannerUrl) {
+    const bannerHtml = `<table border="0" cellpadding="0" cellspacing="0" style="margin-top: 12px;"><tr><td>${f.bannerLink ? `<a href="${esc(f.bannerLink)}" style="text-decoration: none;">` : ''}<img src="${esc(f.bannerUrl)}" width="500" style="display: block; border-radius: 4px; max-width: 100%;" alt="${esc(f.bannerAlt)}" />${f.bannerLink ? '</a>' : ''}</td></tr></table>`;
+    html += bannerHtml;
+  }
+  return html;
+}
+
+function render() {
+  const f = getFields();
+  let html = '';
+
+  if (currentTemplate === 'minimal') html = buildMinimal(f);
+  else if (currentTemplate === 'professional') html = buildProfessional(f);
+  else if (currentTemplate === 'banner') html = buildBanner(f);
+
+  document.getElementById('previewArea').innerHTML = html;
+  document.getElementById('htmlSource').value = html;
+}
+
+function copySignature() {
+  const html = document.getElementById('htmlSource').value;
+  navigator.clipboard.writeText(html).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy HTML to Clipboard', 1500);
+  });
+}
+
+function copyRichText() {
+  const html = document.getElementById('htmlSource').value;
+  const blob = new Blob([html], { type: 'text/html' });
+  navigator.clipboard.write([
+    new ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([html], { type: 'text/plain' }) })
+  ]).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
