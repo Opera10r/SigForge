@@ -32,6 +32,11 @@ Two copy modes:
 - **Copy HTML** — raw HTML source code
 - **Copy as Rich Text** — formatted paste for visual editors
 
+## Pricing
+
+- **Free**: Unlimited use
+- **Support the project**: [$1/month](https://buy.stripe.com/fZu28qezo3dK4Qggei2cg0f)
+
 ## Live
 
 [https://opera10r.github.io/SigForge/](https://opera10r.github.io/SigForge/)
